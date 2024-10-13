@@ -13,6 +13,7 @@ import Mathlib.RingTheory.Ideal.Over
 import Mathlib.FieldTheory.Normal
 import Mathlib.FieldTheory.SeparableClosure
 import Mathlib.RingTheory.OreLocalization.Ring
+import Mathlib
 
 /-!
 
@@ -653,7 +654,7 @@ This part of the argument seems weak.
 section L_over_K_stuff
 
 -- Let's now make the right square. First `L`
-variable (L : Type*) [Field L] [Algebra (B ⧸ Q) L] [IsFractionRing (B ⧸ Q) L]
+variable (L : Type*) [Field L] [Algebra (B ⧸ Q) L] [IsFractionRing (B ⧸ Q) L] [Algebra.IsIntegral (A ⧸ P) (B ⧸ Q)]
   -- Now top left triangle: A / P → B / Q → L commutes
   [Algebra (A ⧸ P) L] [IsScalarTower (A ⧸ P) (B ⧸ Q) L]
   -- now introduce K
@@ -711,11 +712,26 @@ open MulSemiringAction.CharacteristicPolynomial
 
 namespace Bourbaki52222
 
+#where
+
 variable (hFull' : ∀ (b : B), (∀ (g : G), g • b = b) → ∃ a : A, b = a) in
 variable (G) in
 noncomputable def residueFieldExtensionPolynomial [DecidableEq L] (x : L) : K[X] :=
-  if x = 0 then monomial (Nat.card G) 1
-  else 37 -- this is not actually right. In the nonzero case you
+  if x = 0 then
+    monomial (Nat.card G) 1
+  else
+    let loc_hyp := IsLocalization.mk'_surjective (nonZeroDivisors (B ⧸ Q)) x
+    let num := loc_hyp.choose
+    let den := loc_hyp.choose_spec.choose
+    let den_nonZero := nonZeroDivisors.coe_ne_zero den
+    let den_mult := Algebra.exists_dvd_nonzero_if_isIntegral (A ⧸ P) (B ⧸ Q) den den_nonZero
+    let num_scaled := num * den_mult
+    let den_scaled := den * den_mult
+    let M := Mbar P hFull' num_scaled
+    let M_scaled := M.scaleRoots den_scaled
+    M_scaled
+--    let mod_hyp := IsQuotient.
+  -- this is not actually right. In the nonzero case you
   -- clear denominators with a nonzero element of A, using
   -- `Algebra.exists_dvd_nonzero_if_isIntegral` above, and then use Mbar
   -- scaled appropriately.
@@ -723,8 +739,14 @@ noncomputable def residueFieldExtensionPolynomial [DecidableEq L] (x : L) : K[X]
 theorem f_exists [DecidableEq L] (l : L) :
     ∃ f : K[X], f.Monic ∧ f.degree = Nat.card G ∧
     eval₂ (algebraMap K L) l f = 0 ∧ f.Splits (algebraMap K L) := by
+
   use Bourbaki52222.residueFieldExtensionPolynomial G L K l
-  sorry
+  split_ands
+  . sorry
+  . sorry
+  . sorry
+  . sorry
+
 
 theorem algebraMap_cast {R S: Type*} [CommRing R] [CommRing S] [Algebra R S] (r : R) :
   (r : S) = (algebraMap R S) r := by
