@@ -708,20 +708,42 @@ theorem IsAlgebraic.invLoc {R S K : Type*} [CommRing R] {M : Submonoid R} [CommR
 
 namespace Bourbaki52222
 
+open nonZeroDivisors
+
+#check Algebra
+
+lemma element_as_fraction (x : L) : ∃ (a : (A ⧸ P)) (ha : a ≠ 0) (b : B ⧸ Q), a • x = algebraMap _ _ b := by
+  let loc_hyp := IsLocalization.mk'_surjective (nonZeroDivisors (B ⧸ Q)) x
+  let num := loc_hyp.choose
+  let den := loc_hyp.choose_spec.choose
+  let x_is_frac := loc_hyp.choose_spec.choose_spec
+  let den_isNonZero := nonZeroDivisors.coe_ne_zero den
+  if x = 0 then
+    use 1
+    use by norm_num
+    use 0
+    rw [one_smul, map_zero]
+    tauto
+  else
+    let c_exists := (Algebra.exists_dvd_nonzero_if_isIntegral (A ⧸ P) (B ⧸ Q) den den_isNonZero)
+    let c := c_exists.choose
+    let c_props := c_exists.choose_spec
+    use c
+    use c_props.1
+    obtain ⟨num_div⟩ := c_props.2
+    use num • num_div
+    sorry
+
+noncomputable def element_as_fraction.den (x : L) : (A ⧸ P) := (element_as_fraction Q P L x).choose
+noncomputable def element_as_fraction.num (x : L) : B ⧸ Q := (element_as_fraction Q P L x).choose_spec.choose_spec.choose
+
 include G hFull' in
 noncomputable def residueFieldExtensionPolynomial [DecidableEq L] (x : L) : K[X] :=
   if x = 0 then
     Polynomial.X ^ (Nat.card G)
   else
-    let loc_hyp := IsLocalization.mk'_surjective (nonZeroDivisors (B ⧸ Q)) x
-    let num := loc_hyp.choose
-    let den := loc_hyp.choose_spec.choose
-    let den_isNonZero := nonZeroDivisors.coe_ne_zero den
-    let existsDenBelow := Algebra.exists_dvd_nonzero_if_isIntegral (A ⧸ P) (B ⧸ Q) den den_isNonZero
-    let den_new := existsDenBelow.choose
-    let den_mult := existsDenBelow.choose_spec.2.choose
-    let M := MulSemiringAction.CharacteristicPolynomial.Mbar P hFull' (num * den_mult)
-    M.scaleRoots den_new
+    letI M := MulSemiringAction.CharacteristicPolynomial.Mbar P hFull' (element_as_fraction.num Q P L x)
+    M.scaleRoots (element_as_fraction.den Q P L x)
 
 include G P Q hFull' in
 theorem f_exists [DecidableEq L] (l : L) :
@@ -738,20 +760,14 @@ theorem f_exists [DecidableEq L] (l : L) :
         aesop
       . apply Polynomial.splits_X_pow
     . split_ands
-      . dsimp
-        sorry
-        -- refine (Polynomial.monic_scaleRoots_iff _).mpr ?_
-        -- apply Mbar_monic
-      . dsimp
-        sorry
-        -- apply Mbar_degree
-      . dsimp
-        sorry
-        -- apply Mbar_eq_0_eval_l
-      . dsimp
+      . apply (Polynomial.monic_scaleRoots_iff (element_as_fraction.den Q P L l)).mp
 
+      . sorry
+      . sorry
+      . sorry
 
-
+--let num := (element_as_fraction.num Q P L l)
+--refine (Polynomial.monic_scaleRoots_iff num).mpr
 
 
 theorem algebraMap_cast {R S: Type*} [CommRing R] [CommRing S] [Algebra R S] (r : R) :
