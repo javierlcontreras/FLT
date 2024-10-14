@@ -13,7 +13,6 @@ import Mathlib.RingTheory.Ideal.Over
 import Mathlib.FieldTheory.Normal
 import Mathlib.FieldTheory.SeparableClosure
 import Mathlib.RingTheory.OreLocalization.Ring
-import Mathlib
 
 /-!
 
@@ -528,7 +527,7 @@ theorem reduction_isIntegral
 
 end MulSemiringAction
 
-theorem Polynomial.nonzero_const_if_isIntegral (R S : Type) [CommRing R] [Nontrivial R]
+theorem Polynomial.nonzero_const_if_isIntegral (R S : Type*) [CommRing R] [Nontrivial R]
     [CommRing S] [Algebra R S] [Algebra.IsIntegral R S] [IsDomain S] (s : S) (hs : s ≠ 0) :
     ∃ (q : Polynomial R), q.coeff 0 ≠ 0 ∧ q.eval₂ (algebraMap R S) s = 0 := by
   obtain ⟨p, p_monic, p_eval⟩ := (@Algebra.isIntegral_def R S).mp inferInstance s
@@ -548,7 +547,7 @@ theorem Polynomial.nonzero_const_if_isIntegral (R S : Type) [CommRing R] [Nontri
       exact pow_eq_zero Xpow_eval
     . exact q_eval
 
-theorem Algebra.exists_dvd_nonzero_if_isIntegral (R S : Type) [CommRing R] [Nontrivial R]
+theorem Algebra.exists_dvd_nonzero_if_isIntegral (R S : Type*) [CommRing R] [Nontrivial R]
     [CommRing S] [Algebra R S] [Algebra.IsIntegral R S] [IsDomain S] (s : S) (hs : s ≠ 0) :
     ∃ r : R, r ≠ 0 ∧ s ∣ (algebraMap R S) r := by
   obtain ⟨q, q_zero_coeff, q_eval_zero⟩ := Polynomial.nonzero_const_if_isIntegral R S s hs
@@ -654,7 +653,7 @@ This part of the argument seems weak.
 section L_over_K_stuff
 
 -- Let's now make the right square. First `L`
-variable (L : Type*) [Field L] [Algebra (B ⧸ Q) L] [IsFractionRing (B ⧸ Q) L] [Algebra.IsIntegral (A ⧸ P) (B ⧸ Q)]
+variable (L : Type*) [Field L] [Algebra (B ⧸ Q) L] [IsFractionRing (B ⧸ Q) L] [Algebra.IsIntegral (A ⧸ P) (B ⧸ Q)] [Nontrivial (B⧸Q)] [Nontrivial (A⧸P)]
   -- Now top left triangle: A / P → B / Q → L commutes
   [Algebra (A ⧸ P) L] [IsScalarTower (A ⧸ P) (B ⧸ Q) L]
   -- now introduce K
@@ -723,12 +722,13 @@ noncomputable def residueFieldExtensionPolynomial [DecidableEq L] (x : L) : K[X]
     let loc_hyp := IsLocalization.mk'_surjective (nonZeroDivisors (B ⧸ Q)) x
     let num := loc_hyp.choose
     let den := loc_hyp.choose_spec.choose
-    let den_nonZero := nonZeroDivisors.coe_ne_zero den
-    let den_mult := Algebra.exists_dvd_nonzero_if_isIntegral (A ⧸ P) (B ⧸ Q) den den_nonZero
+    let den_isNonZero := nonZeroDivisors.coe_ne_zero den
+    let existsDenBelow := (Algebra.exists_dvd_nonzero_if_isIntegral (A ⧸ P) (B ⧸ Q) den den_isNonZero)
+    let den_new := existsDenBelow.choose
+    let den_mult := existsDenBelow.choose_spec.2.choose
     let num_scaled := num * den_mult
-    let den_scaled := den * den_mult
     let M := Mbar P hFull' num_scaled
-    let M_scaled := M.scaleRoots den_scaled
+    let M_scaled := M.scaleRoots den_new
     M_scaled
 --    let mod_hyp := IsQuotient.
   -- this is not actually right. In the nonzero case you
@@ -739,8 +739,7 @@ noncomputable def residueFieldExtensionPolynomial [DecidableEq L] (x : L) : K[X]
 theorem f_exists [DecidableEq L] (l : L) :
     ∃ f : K[X], f.Monic ∧ f.degree = Nat.card G ∧
     eval₂ (algebraMap K L) l f = 0 ∧ f.Splits (algebraMap K L) := by
-
-  use Bourbaki52222.residueFieldExtensionPolynomial G L K l
+  use Bourbaki52222.residueFieldExtensionPolynomial L K l
   split_ands
   . sorry
   . sorry
