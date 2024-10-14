@@ -413,7 +413,7 @@ section part_b
 
 variable {A : Type*} [CommRing A]
   {B : Type*} [CommRing B] [Algebra A B]
-  {G : Type*} [Group G] [Finite G] [MulSemiringAction G B] [SMulCommClass G A B]
+  {G : Type*} [Group G] [Finite G] [Nonempty G][MulSemiringAction G B] [SMulCommClass G A B]
 
 /-
 Set-up for part (b) of the lemma. G acts on B with invariants A (or more precisely the
@@ -667,9 +667,8 @@ variable (L : Type*) [Field L] [Algebra (B ⧸ Q) L] [IsFractionRing (B ⧸ Q) L
 
 -- Do I need this:
 --  [Algebra B L] [IsScalarTower B (B ⧸ Q) L]
-
 variable [Nontrivial B]
-
+variable (hFull' : ∀ (b : B), (∀ (g : G), g • b = b) → ∃ a : A, b = a)
 
 -- Do we need a version of Ideal.Quotient.eq_zero_iff_mem with algebraMap?
 
@@ -707,44 +706,52 @@ theorem IsAlgebraic.invLoc {R S K : Type*} [CommRing R] {M : Submonoid R} [CommR
   rw [← IsAlgebraic.invOf_iff, IsLocalization.invertible_mk'_one_invOf]
   exact h
 
-open MulSemiringAction.CharacteristicPolynomial
-
 namespace Bourbaki52222
 
-#where
-
-variable (hFull' : ∀ (b : B), (∀ (g : G), g • b = b) → ∃ a : A, b = a) in
-variable (G) in
+include G hFull' in
 noncomputable def residueFieldExtensionPolynomial [DecidableEq L] (x : L) : K[X] :=
   if x = 0 then
-    monomial (Nat.card G) 1
+    Polynomial.X ^ (Nat.card G)
   else
     let loc_hyp := IsLocalization.mk'_surjective (nonZeroDivisors (B ⧸ Q)) x
     let num := loc_hyp.choose
     let den := loc_hyp.choose_spec.choose
     let den_isNonZero := nonZeroDivisors.coe_ne_zero den
-    let existsDenBelow := (Algebra.exists_dvd_nonzero_if_isIntegral (A ⧸ P) (B ⧸ Q) den den_isNonZero)
+    let existsDenBelow := Algebra.exists_dvd_nonzero_if_isIntegral (A ⧸ P) (B ⧸ Q) den den_isNonZero
     let den_new := existsDenBelow.choose
     let den_mult := existsDenBelow.choose_spec.2.choose
-    let num_scaled := num * den_mult
-    let M := Mbar P hFull' num_scaled
-    let M_scaled := M.scaleRoots den_new
-    M_scaled
---    let mod_hyp := IsQuotient.
-  -- this is not actually right. In the nonzero case you
-  -- clear denominators with a nonzero element of A, using
-  -- `Algebra.exists_dvd_nonzero_if_isIntegral` above, and then use Mbar
-  -- scaled appropriately.
+    let M := MulSemiringAction.CharacteristicPolynomial.Mbar P hFull' (num * den_mult)
+    M.scaleRoots den_new
 
+include G P Q hFull' in
 theorem f_exists [DecidableEq L] (l : L) :
     ∃ f : K[X], f.Monic ∧ f.degree = Nat.card G ∧
     eval₂ (algebraMap K L) l f = 0 ∧ f.Splits (algebraMap K L) := by
-  use Bourbaki52222.residueFieldExtensionPolynomial L K l
-  split_ands
-  . sorry
-  . sorry
-  . sorry
-  . sorry
+    use residueFieldExtensionPolynomial Q P L K hFull' l
+    unfold residueFieldExtensionPolynomial
+    split_ifs with zero_hyp
+    . split_ands
+      . apply Polynomial.monic_X_pow
+      . apply Polynomial.degree_X_pow
+      . rw [zero_hyp, Polynomial.eval₂_X_pow, zero_pow]
+        apply Nat.card_ne_zero.mpr
+        aesop
+      . apply Polynomial.splits_X_pow
+    . split_ands
+      . dsimp
+        sorry
+        -- refine (Polynomial.monic_scaleRoots_iff _).mpr ?_
+        -- apply Mbar_monic
+      . dsimp
+        sorry
+        -- apply Mbar_degree
+      . dsimp
+        sorry
+        -- apply Mbar_eq_0_eval_l
+      . dsimp
+
+
+
 
 
 theorem algebraMap_cast {R S: Type*} [CommRing R] [CommRing S] [Algebra R S] (r : R) :
