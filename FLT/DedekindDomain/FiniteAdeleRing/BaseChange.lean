@@ -209,8 +209,8 @@ instance : IsScalarTower K L (adicCompletion L w) := IsScalarTower.of_algebraMap
 
 variable {B L} in
 noncomputable def adicCompletionComapAlgHom (w : HeightOneSpectrum B) :
-    (HeightOneSpectrum.adicCompletion K (comap A w)) →ₐ[K]
-    (HeightOneSpectrum.adicCompletion L w) where
+    (adicCompletion K (comap A w)) →ₐ[K]
+    (adicCompletion L w) where
   __ := adicCompletionComapRingHom A K w
   commutes' r := by
     simp only [RingHom.toMonoidHom_eq_coe, OneHom.toFun_eq_coe, MonoidHom.toOneHom_coe,
@@ -225,16 +225,35 @@ noncomputable def adicCompletionComapAlgHom (w : HeightOneSpectrum B) :
     rw [this, ← IsScalarTower.algebraMap_apply K L]
 
 noncomputable def adicCompletionComapAlgHom' (v : HeightOneSpectrum A) :
-  (HeightOneSpectrum.adicCompletion K v) →ₐ[K]
-    (∀ w : {w : HeightOneSpectrum B // v = comap A w}, HeightOneSpectrum.adicCompletion L w.1) :=
+  (adicCompletion K v) →ₐ[K]
+    (∀ w : {w : HeightOneSpectrum B // v = comap A w}, adicCompletion L w.1) :=
   sorry
 
 open scoped TensorProduct -- ⊗ notation for tensor product
 
+
 noncomputable def adicCompletionComapAlgIso (v : HeightOneSpectrum A) :
-  (L ⊗[K] (HeightOneSpectrum.adicCompletion K v)) ≃ₐ[L]
-    (∀ w : {w : HeightOneSpectrum B // v = comap A w}, HeightOneSpectrum.adicCompletion L w.1) :=
-  sorry
+  (L ⊗[K] (adicCompletion K v)) ≃ₐ[L]
+  (∀ w : {w : HeightOneSpectrum B // v = comap A w}, adicCompletion L w.1) := by
+    let PiLw_above_v :=
+      (∀ w : {w : HeightOneSpectrum B // v = comap A w}, adicCompletion L w.1)
+    --#synth HMul.hmul PiLw_above_v
+    let mp : (L ⊗[K] (adicCompletion K v)) →ₐ[L] PiLw_above_v := by
+      refine Algebra.TensorProduct.liftEquiv ?_
+      let mpL := AlgHom.mk' (algebraMap L PiLw_above_v) (R := L)
+        (fun c x ↦ algebraMap.coe_smul L L PiLw_above_v c x)
+      let mpKv := adicCompletionComapAlgHom' A K L B v
+      refine ⟨⟨mpL, mpKv⟩, ?_⟩
+      simp [mpL, mpKv, PiLw_above_v, Pi.commute_iff]
+      intro x y w v_match_w
+      simp [Commute, SemiconjBy]
+      rw [mul_comm]
+    have mp_surj : Function.Surjective mp := by
+      simp
+      sorry
+    have mp_inj : Function.Injective mp := sorry
+    exact AlgEquiv.ofBijective mp ⟨mp_inj, mp_surj⟩
+
 
 theorem adicCompletionComapAlgIso_integral : ∃ S : Finset (HeightOneSpectrum A), ∀ v ∉ S,
   -- image of B ⊗[A] (integer ring at v) = (product of integer rings at w's) under above iso
