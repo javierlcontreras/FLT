@@ -22,7 +22,7 @@ is an isomorphism.
 
 -/
 
-open scoped Multiplicative
+open scoped Multiplicative Set
 
 -- The general set-up.
 
@@ -237,56 +237,87 @@ noncomputable def adicCompletionComapAlgHom
 
 open scoped TensorProduct -- ⊗ notation for tensor product
 
-noncomputable def adicCompletionComapTensorAlgHom (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
+noncomputable abbrev adicCompletionComapTensorAlgHom (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
   (hvw : v = comap A w) : L ⊗[K] (adicCompletion K v) →ₐ[L] (adicCompletion L w) :=
   Algebra.TensorProduct.lift (Algebra.ofId _ _) (adicCompletionComapAlgHom v w hvw)
     fun _ _ ↦ .all _ _
 
 variable (w : HeightOneSpectrum B) in
-instance : Algebra (adicCompletion K (comap A w)) (adicCompletion L w) := sorry
+noncomputable instance : Algebra (adicCompletion K (comap A w)) (adicCompletion L w) :=
+  (adicCompletionComapAlgHom (comap A w) w rfl).toAlgebra
 
 variable (w : HeightOneSpectrum B) in
-instance : IsScalarTower K (adicCompletion K (comap A w)) (adicCompletion L w) := sorry
+noncomputable instance : IsScalarTower K (adicCompletion K (comap A w)) (adicCompletion L w) where
+  smul_assoc x y z := sorry
 
 lemma adicCompletionComapTensorAlgHom_surjective (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
   (hvw : v = comap A w) : Function.Surjective (adicCompletionComapTensorAlgHom A K L B v w hvw) := by
-  rw [← AlgHom.range_eq_top]
-  let M' := (adicCompletionComapTensorAlgHom A K L B v w hvw).range
-  let M := M'.toIntermediateField' (by sorry)
-  letI : Module (adicCompletion K v) M := sorry
-  letI : Module.Finite (adicCompletion K v) M := sorry
-  -- Finite extension of complete is complete => M is complete
-  -- Complete intermediate field between a field and its completion => its top
   sorry
-
-local notation3 "[" K ":" L "]" => Field.finSepDegree (L) (K)
 /-
-lemma adicCompletionDegree_le_degree (w : HeightOneSpectrum B):
-  [adicCompletion K (comap A w) : adicCompletion L w] ≤ [L : K] := by
 
+  rw [← AlgHom.range_eq_top]
+  let M := (adicCompletionComapTensorAlgHom A K L B v w hvw).range
+  let L' : Subfield (adicCompletion L w):= .of L
+  let M := M'.toIntermediateField' (by
+    refine ⟨?_,?_,?_⟩
+    use 0, 1
+
+
+  )
+  letI : Module (adicCompletion K v) ((adicCompletion K v) ⊗[K] L) := by
+    sorry
+  letI : Algebra (adicCompletion K v) M' := RingHom.toAlgebra <|
+    RingHom.comp (adicCompletionComapTensorAlgHom A K L B v w hvw).toRingHom (algebraMap _ M')
+
+  letI : Algebra B M := RingHom.toAlgebra <| RingHom.comp (algebraMap L M) (algebraMap B L)
+  letI : Module.Finite (adicCompletion K v) M := sorry
+  letI : IsAdicComplete w.asIdeal M := by
+    -- Finite extension of complete is complete => M is complete
+      sorry
+  -- Complete intermediate field between a field and its completion => its top
   sorry
 -/
 
+local notation3 "[" K ":" L "]" => Field.finSepDegree (L) (K)
+
+lemma adicCompletionDegree_le_degree (w : HeightOneSpectrum B):
+  [adicCompletion L w : adicCompletion K (comap A w)] ≤ [L : K] := by
+  sorry
+
+
 -- Theorem 5.12 in https://math.berkeley.edu/~ltomczak/notes/Mich2022/LF_Notes.pdf
-variable {A K} in
-def PiLw_above_v (v : HeightOneSpectrum A) :=
+abbrev PiLw_above_v (v : HeightOneSpectrum A) :=
   Π w : {w : HeightOneSpectrum B // v = comap A w}, adicCompletion L w.1
 
-noncomputable def adicCompletionComapTensorAlgHomToPi (v : HeightOneSpectrum A) :
-    L ⊗[K] adicCompletion K v →ₐ[L] PiLw_above_v L B v :=
-    sorry
 
--- lemma adicCompletionComapAlgHomTensor := by sorry
+noncomputable def adicCompletionComapTensorAlgHomToPi (v : HeightOneSpectrum A) :
+    L ⊗[K] adicCompletion K v →ₐ[L] PiLw_above_v A L B v :=
+      Pi.algHom _ _ fun w ↦ adicCompletionComapTensorAlgHom A K L B v w.1 w.2
+
+variable (v : HeightOneSpectrum A)
+instance : DecidableEq (Polynomial (adicCompletion K v)) := sorry
 
 noncomputable def adicCompletiontComapTensorAlgIso (v : HeightOneSpectrum A) :
   (L ⊗[K] (adicCompletion K v)) ≃ₐ[L] PiLw_above_v A L B v := by
-    have mp_surj : Function.Surjective (adicCompletionTensorComapAlgHom' A K L B v) := by
-      simp [adicCompletionTensorComapAlgHom', PiLw_above_v]
-      sorry
-    have mp_inj : Function.Injective (adicCompletionTensorComapAlgHom' A K L B v) := by
-      simp [adicCompletionTensorComapAlgHom', PiLw_above_v]
-      sorry
-    exact AlgEquiv.ofBijective (adicCompletionTensorComapAlgHom' A K L B v) ⟨mp_inj, mp_surj⟩
+  let α := Field.exists_primitive_element K L
+  let fK := minpoly K α.choose
+  let Kv := adicCompletion K v
+  let fKv := Polynomial.map (algebraMap _ Kv) fK
+  let factors := UniqueFactorizationMonoid.factors fKv
+#exit
+  let PP := (Multiset.map (fun f => Polynomial Kv ⧸ Ideal.span {f}) factors).prod
+  have : (Polynomial K ⧸ Ideal.span {fK}) ⊗[K] (adicCompletion K v) ≃ₐ[L]
+    PP :=
+  -- How to make a product indexed by a multiset?
+    sorry
+
+  have surj:
+    Function.Surjective (adicCompletionComapTensorAlgHomToPi A K L B v) := by sorry
+
+  have inj :
+    Function.Injective (adicCompletionComapTensorAlgHomToPi A K L B v) := by sorry
+
+  exact AlgEquiv.ofBijective _ ⟨inj, surj⟩
 
 
 theorem adicCompletionComapAlgIso_integral : ∃ S : Finset (HeightOneSpectrum A), ∀ v ∉ S,
