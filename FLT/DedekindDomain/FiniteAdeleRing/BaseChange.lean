@@ -237,20 +237,20 @@ noncomputable def adicCompletionComapAlgHom
 
 open scoped TensorProduct -- ⊗ notation for tensor product
 
-noncomputable abbrev adicCompletionComapTensorAlgHom (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
-  (hvw : v = comap A w) : L ⊗[K] (adicCompletion K v) →ₐ[L] (adicCompletion L w) :=
+noncomputable abbrev adicCompletionComapTensorAlgHom (v : HeightOneSpectrum A)
+  (w : HeightOneSpectrum B) (hvw : v = comap A w) :
+  L ⊗[K] (adicCompletion K v) →ₐ[L] (adicCompletion L w) :=
   Algebra.TensorProduct.lift (Algebra.ofId _ _) (adicCompletionComapAlgHom v w hvw)
     fun _ _ ↦ .all _ _
 
+-- These things depend on Yaël's PR
 variable (w : HeightOneSpectrum B) in
-noncomputable instance : Algebra (adicCompletion K (comap A w)) (adicCompletion L w) :=
-  (adicCompletionComapAlgHom (comap A w) w rfl).toAlgebra
+noncomputable instance : Algebra (adicCompletion K (comap A w)) (adicCompletion L w) := sorry
+variable (w : HeightOneSpectrum B) in
+noncomputable instance : IsScalarTower K (adicCompletion K (comap A w)) (adicCompletion L w) := sorry
+variable (w : HeightOneSpectrum B) in
+noncomputable instance : IsScalarTower K L (adicCompletion L w) := sorry
 
-variable (w : HeightOneSpectrum B) in
-noncomputable instance : IsScalarTower K (adicCompletion K (comap A w)) (adicCompletion L w) where
-  smul_assoc x y z := by
-    simp [HSMul.hSMul, instHSMul, SMul.smul]
-    sorry
 
 lemma adicCompletionComapTensorAlgHom_surjective (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
   (hvw : v = comap A w) : Function.Surjective (adicCompletionComapTensorAlgHom A K L B v w hvw) := by
@@ -258,10 +258,19 @@ lemma adicCompletionComapTensorAlgHom_surjective (v : HeightOneSpectrum A) (w : 
   let M' := (adicCompletionComapTensorAlgHom A K L B v w hvw).range
   let L' := (algebraMap L (adicCompletion L w)).range
   let Kv' := (adicCompletionComapAlgHom (K := K) (L := L) v w hvw).range
-  have : M'.toSubring = L' ⊔  Kv'.toSubring := sorry
+
   letI : AddCommMonoid M' := sorry
   letI : Module (adicCompletion K v) M' := sorry
-  letI : Module.Finite (adicCompletion K v) M' := sorry
+  letI : Module.Finite (adicCompletion K v) M' := by
+    let gens := (Basis.exists_basis K L).choose
+    let a_basis := (Basis.exists_basis K L).choose_spec
+    let basis := a_basis.some
+    let ι := FiniteDimensional.fintypeBasisIndex basis
+    let spanning_set := (fun b ↦ adicCompletionComapTensorAlgHom A K L B v w hvw (b⊗ₜ1))
+      '' gens
+    refine ⟨⟨?_,?_⟩⟩
+
+
   letI : IsAdicComplete w.asIdeal M' := sorry
     -- Finite extension of complete is complete => M is complete. We have this in Mathlib! (Yaël)
   -- Complete intermediate field between a field and its completion => its top
@@ -287,6 +296,20 @@ lemma adicCompletionDegree_le_degree (v : HeightOneSpectrum A) (w : HeightOneSpe
   sorry
 
 -- Theorem 5.12 in https://math.berkeley.edu/~ltomczak/notes/Mich2022/LF_Notes.pdf
+
+#synth Semiring (Polynomial (adicCompletion K v) ⧸ Ideal.span {g i})
+#synth Semiring (Fin (e i) → Polynomial (adicCompletion K v) ⧸ Ideal.span {g i})
+#synth Semiring ({i : ι // i ∈ s} →  Fin (e i) → Polynomial (adicCompletion K v) ⧸ Ideal.span {g i})
+#synth Semiring (Π i ∈ s,  Fin (e i) → Polynomial (adicCompletion K v) ⧸ Ideal.span {g i})
+
+#exit
+
+theorem tensor_adic_equiv_prod_factors :
+  (adicCompletion K v) ⊗[K] (Polynomial K ⧸ Ideal.span {f}) ≃ₐ[K]
+    Π i ∈ s, Fin (e i) → Polynomial (adicCompletion K v) ⧸ Ideal.span {g i} := by
+  sorry
+
+
 abbrev PiLw_above_v (v : HeightOneSpectrum A) :=
   Π w : {w : HeightOneSpectrum B // v = comap A w}, adicCompletion L w.1
 
