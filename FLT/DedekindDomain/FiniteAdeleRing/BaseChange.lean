@@ -248,47 +248,47 @@ noncomputable instance : Algebra (adicCompletion K (comap A w)) (adicCompletion 
 
 variable (w : HeightOneSpectrum B) in
 noncomputable instance : IsScalarTower K (adicCompletion K (comap A w)) (adicCompletion L w) where
-  smul_assoc x y z := sorry
+  smul_assoc x y z := by
+    simp [HSMul.hSMul, instHSMul, SMul.smul]
+    sorry
 
 lemma adicCompletionComapTensorAlgHom_surjective (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
   (hvw : v = comap A w) : Function.Surjective (adicCompletionComapTensorAlgHom A K L B v w hvw) := by
-  sorry
-/-
-
   rw [← AlgHom.range_eq_top]
-  let M := (adicCompletionComapTensorAlgHom A K L B v w hvw).range
-  let L' : Subfield (adicCompletion L w):= .of L
-  let M := M'.toIntermediateField' (by
-    refine ⟨?_,?_,?_⟩
-    use 0, 1
-
-
-  )
-  letI : Module (adicCompletion K v) ((adicCompletion K v) ⊗[K] L) := by
-    sorry
-  letI : Algebra (adicCompletion K v) M' := RingHom.toAlgebra <|
-    RingHom.comp (adicCompletionComapTensorAlgHom A K L B v w hvw).toRingHom (algebraMap _ M')
-
-  letI : Algebra B M := RingHom.toAlgebra <| RingHom.comp (algebraMap L M) (algebraMap B L)
-  letI : Module.Finite (adicCompletion K v) M := sorry
-  letI : IsAdicComplete w.asIdeal M := by
-    -- Finite extension of complete is complete => M is complete
-      sorry
+  let M' := (adicCompletionComapTensorAlgHom A K L B v w hvw).range
+  let L' := (algebraMap L (adicCompletion L w)).range
+  let Kv' := (adicCompletionComapAlgHom (K := K) (L := L) v w hvw).range
+  have : M'.toSubring = L' ⊔  Kv'.toSubring := sorry
+  letI : AddCommMonoid M' := sorry
+  letI : Module (adicCompletion K v) M' := sorry
+  letI : Module.Finite (adicCompletion K v) M' := sorry
+  letI : IsAdicComplete w.asIdeal M' := sorry
+    -- Finite extension of complete is complete => M is complete. We have this in Mathlib! (Yaël)
   -- Complete intermediate field between a field and its completion => its top
   sorry
--/
 
-local notation3 "[" K ":" L "]" => Field.finSepDegree (L) (K)
+local notation3 "[" L ":" K "]" => Module.finrank K L
 
-lemma adicCompletionDegree_le_degree (w : HeightOneSpectrum B):
+variable (w : HeightOneSpectrum B) in
+#synth Algebra (adicCompletion K (comap A w)) (adicCompletion L w)
+
+variable (w : HeightOneSpectrum B) in
+instance : Module (adicCompletion K (comap A w)) (adicCompletion L w) := ç
+  sorry -- Why is this needed, if I have the one above??
+
+
+lemma adicCompletionDegree_le_degree (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
+  (hvw : v = comap A w):
   [adicCompletion L w : adicCompletion K (comap A w)] ≤ [L : K] := by
+  let basis := (Basis.exists_basis K L).choose
+  have is_basis := (Basis.exists_basis K L).choose_spec
+  let spanning_set := (fun b ↦ adicCompletionComapTensorAlgHom A K L B v w hvw (b ⊗ₜ 1)) '' basis
+  have : Submodule.span (adicCompletion K (comap A w)) spanning_set = ⊤ := sorry
   sorry
-
 
 -- Theorem 5.12 in https://math.berkeley.edu/~ltomczak/notes/Mich2022/LF_Notes.pdf
 abbrev PiLw_above_v (v : HeightOneSpectrum A) :=
   Π w : {w : HeightOneSpectrum B // v = comap A w}, adicCompletion L w.1
-
 
 noncomputable def adicCompletionComapTensorAlgHomToPi (v : HeightOneSpectrum A) :
     L ⊗[K] adicCompletion K v →ₐ[L] PiLw_above_v A L B v :=
