@@ -287,7 +287,7 @@ variable (f' : Polynomial (adicCompletion K v))
 variable {ι : Type*} {s : Finset ι}
 variable (g : ι → Polynomial (adicCompletion K v))
 
-def tensor_product_of_polynomial_algebra (hff : f' = f.map (algebraMap _ _)):
+def extendConstants_of_polynomialAlgebra (hff : f' = f.map (algebraMap _ _)):
   ((Polynomial K) ⧸ Ideal.span {f}) ⊗[K] (adicCompletion K v) ≃ₐ[K]
   ((Polynomial (adicCompletion K v)) ⧸ (Ideal.span {f'})) := by
   sorry
@@ -302,7 +302,7 @@ noncomputable def tensor_adic_equiv_prod_factors (hff : f' = f.map (algebraMap _
   (prod_gs_eq_f : f' = ∏ i : s, g i) (pairwise_distinct : ∀ i j, ∀ _ : i ≠ j, g i ≠ g j)
   : ((Polynomial K) ⧸ Ideal.span {f}) ⊗[K] (adicCompletion K v)
   ≃ₐ[K] Π i : s, ((Polynomial (adicCompletion K v)) ⧸ (Ideal.span {g i})) :=
-    .trans (tensor_product_of_polynomial_algebra  A K v f f' hff)
+    .trans (extendConstants_of_polynomialAlgebra  A K v f f' hff)
       (_chinese_reminder A K v f' g prod_gs_eq_f pairwise_distinct)
 
 abbrev PiLw_above_v (v : HeightOneSpectrum A) :=
@@ -319,8 +319,6 @@ def mapFactorsToPlaces_isSurj : Function.Surjective (mapFactorsToPlaces A K L B 
 
 def mapFactorsToPlaces_isInj : Function.Injective (mapFactorsToPlaces A K L B v g (s := s)) := sorry
 
-#exit
-
 noncomputable def adicCompletiontComapTensorAlgIso (v : HeightOneSpectrum A) :
   (L ⊗[K] (adicCompletion K v)) ≃ₐ[L] PiLw_above_v A L B v := by
   let α := Field.exists_primitive_element K L
@@ -328,21 +326,7 @@ noncomputable def adicCompletiontComapTensorAlgIso (v : HeightOneSpectrum A) :
   let Kv := adicCompletion K v
   let fKv := Polynomial.map (algebraMap _ Kv) fK
   let factors := UniqueFactorizationMonoid.factors fKv
-#exit
-  let PP := (Multiset.map (fun f => Polynomial Kv ⧸ Ideal.span {f}) factors).prod
-  have : (Polynomial K ⧸ Ideal.span {fK}) ⊗[K] (adicCompletion K v) ≃ₐ[L]
-    PP :=
-  -- How to make a product indexed by a multiset?
-    sorry
-
-  have surj:
-    Function.Surjective (adicCompletionComapTensorAlgHomToPi A K L B v) := by sorry
-
-  have inj :
-    Function.Injective (adicCompletionComapTensorAlgHomToPi A K L B v) := by sorry
-
-  exact AlgEquiv.ofBijective _ ⟨inj, surj⟩
-
+  sorry
 
 theorem adicCompletionComapAlgIso_integral : ∃ S : Finset (HeightOneSpectrum A), ∀ v ∉ S,
   -- image of B ⊗[A] (integer ring at v) = (product of integer rings at w's) under above iso
