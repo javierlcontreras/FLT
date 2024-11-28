@@ -235,22 +235,19 @@ noncomputable def adicCompletionComapAlgHom
 
 -- Lemma 5.11 in https://math.berkeley.edu/~ltomczak/notes/Mich2022/LF_Notes.pdf
 
+variable (v : HeightOneSpectrum A) (w : HeightOneSpectrum B) (hvw : v = comap A w)
+
 open scoped TensorProduct -- ⊗ notation for tensor product
 
-noncomputable abbrev adicCompletionComapTensorAlgHom (v : HeightOneSpectrum A)
-  (w : HeightOneSpectrum B) (hvw : v = comap A w) :
+noncomputable abbrev adicCompletionComapTensorAlgHom:
   L ⊗[K] (adicCompletion K v) →ₐ[L] (adicCompletion L w) :=
   Algebra.TensorProduct.lift (Algebra.ofId _ _) (adicCompletionComapAlgHom v w hvw)
     fun _ _ ↦ .all _ _
 
 -- These things depend on Yaël's PR
-variable (w : HeightOneSpectrum B) in
 noncomputable instance : Algebra (adicCompletion K (comap A w)) (adicCompletion L w) := sorry
-variable (w : HeightOneSpectrum B) in
 noncomputable instance : IsScalarTower K (adicCompletion K (comap A w)) (adicCompletion L w) := sorry
-variable (w : HeightOneSpectrum B) in
 noncomputable instance : IsScalarTower K L (adicCompletion L w) := sorry
-
 
 lemma adicCompletionComapTensorAlgHom_surjective (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
   (hvw : v = comap A w) : Function.Surjective (adicCompletionComapTensorAlgHom A K L B v w hvw) := by
@@ -269,26 +266,15 @@ lemma adicCompletionComapTensorAlgHom_surjective (v : HeightOneSpectrum A) (w : 
     let spanning_set := (fun b ↦ adicCompletionComapTensorAlgHom A K L B v w hvw (b⊗ₜ1))
       '' gens
     refine ⟨⟨?_,?_⟩⟩
-
-
   letI : IsAdicComplete w.asIdeal M' := sorry
     -- Finite extension of complete is complete => M is complete. We have this in Mathlib! (Yaël)
   -- Complete intermediate field between a field and its completion => its top
   sorry
 
-local notation3 "[" L ":" K "]" => Module.finrank K L
-
-variable (w : HeightOneSpectrum B) in
-#synth Algebra (adicCompletion K (comap A w)) (adicCompletion L w)
-
-variable (w : HeightOneSpectrum B) in
-instance : Module (adicCompletion K (comap A w)) (adicCompletion L w) := ç
-  sorry -- Why is this needed, if I have the one above??
-
-
+set_option synthInstance.maxHeartbeats 0 in
 lemma adicCompletionDegree_le_degree (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
   (hvw : v = comap A w):
-  [adicCompletion L w : adicCompletion K (comap A w)] ≤ [L : K] := by
+  Module.finrank  (adicCompletion K (comap A w)) (adicCompletion L w) ≤ Module.finrank K L := by
   let basis := (Basis.exists_basis K L).choose
   have is_basis := (Basis.exists_basis K L).choose_spec
   let spanning_set := (fun b ↦ adicCompletionComapTensorAlgHom A K L B v w hvw (b ⊗ₜ 1)) '' basis
@@ -296,19 +282,28 @@ lemma adicCompletionDegree_le_degree (v : HeightOneSpectrum A) (w : HeightOneSpe
   sorry
 
 -- Theorem 5.12 in https://math.berkeley.edu/~ltomczak/notes/Mich2022/LF_Notes.pdf
+variable (f : Polynomial K)
+variable (f' : Polynomial (adicCompletion K v))
+variable {ι : Type*} {s : Finset ι}
+variable (g : ι → Polynomial (adicCompletion K v))
 
-#synth Semiring (Polynomial (adicCompletion K v) ⧸ Ideal.span {g i})
-#synth Semiring (Fin (e i) → Polynomial (adicCompletion K v) ⧸ Ideal.span {g i})
-#synth Semiring ({i : ι // i ∈ s} →  Fin (e i) → Polynomial (adicCompletion K v) ⧸ Ideal.span {g i})
-#synth Semiring (Π i ∈ s,  Fin (e i) → Polynomial (adicCompletion K v) ⧸ Ideal.span {g i})
-
-#exit
-
-theorem tensor_adic_equiv_prod_factors :
-  (adicCompletion K v) ⊗[K] (Polynomial K ⧸ Ideal.span {f}) ≃ₐ[K]
-    Π i ∈ s, Fin (e i) → Polynomial (adicCompletion K v) ⧸ Ideal.span {g i} := by
+def tensor_product_of_polynomial_algebra (hff : f' = f.map (algebraMap _ _)):
+  ((Polynomial K) ⧸ Ideal.span {f}) ⊗[K] (adicCompletion K v) ≃ₐ[K]
+  ((Polynomial (adicCompletion K v)) ⧸ (Ideal.span {f'})) := by
   sorry
 
+def _chinese_reminder (prod_gs_eq_f : f' = ∏ i : s, g i)
+  (pairwise_distinct : ∀ i j, ∀ _ : i ≠ j, g i ≠ g j)
+  : ((Polynomial (adicCompletion K v)) ⧸ (Ideal.span {f'})) ≃ₐ[K]
+  Π i : s, ((Polynomial (adicCompletion K v)) ⧸ (Ideal.span {g i})) := by
+  sorry
+
+noncomputable def tensor_adic_equiv_prod_factors (hff : f' = f.map (algebraMap _ _))
+  (prod_gs_eq_f : f' = ∏ i : s, g i) (pairwise_distinct : ∀ i j, ∀ _ : i ≠ j, g i ≠ g j)
+  : ((Polynomial K) ⧸ Ideal.span {f}) ⊗[K] (adicCompletion K v)
+  ≃ₐ[K] Π i : s, ((Polynomial (adicCompletion K v)) ⧸ (Ideal.span {g i})) :=
+    .trans (tensor_product_of_polynomial_algebra  A K v f f' hff)
+      (_chinese_reminder A K v f' g prod_gs_eq_f pairwise_distinct)
 
 abbrev PiLw_above_v (v : HeightOneSpectrum A) :=
   Π w : {w : HeightOneSpectrum B // v = comap A w}, adicCompletion L w.1
@@ -317,8 +312,14 @@ noncomputable def adicCompletionComapTensorAlgHomToPi (v : HeightOneSpectrum A) 
     L ⊗[K] adicCompletion K v →ₐ[L] PiLw_above_v A L B v :=
       Pi.algHom _ _ fun w ↦ adicCompletionComapTensorAlgHom A K L B v w.1 w.2
 
-variable (v : HeightOneSpectrum A)
-instance : DecidableEq (Polynomial (adicCompletion K v)) := sorry
+def mapFactorsToPlaces: {g i | (i : s)}
+  → {adicCompletion L w | (w : HeightOneSpectrum B) (h : v = comap A w)} := sorry
+
+def mapFactorsToPlaces_isSurj : Function.Surjective (mapFactorsToPlaces A K L B v g (s := s)) := sorry
+
+def mapFactorsToPlaces_isInj : Function.Injective (mapFactorsToPlaces A K L B v g (s := s)) := sorry
+
+#exit
 
 noncomputable def adicCompletiontComapTensorAlgIso (v : HeightOneSpectrum A) :
   (L ⊗[K] (adicCompletion K v)) ≃ₐ[L] PiLw_above_v A L B v := by
