@@ -312,12 +312,14 @@ noncomputable def adicCompletionComapTensorAlgHomToPi (v : HeightOneSpectrum A) 
     L ⊗[K] adicCompletion K v →ₐ[L] PiLw_above_v A L B v :=
       Pi.algHom _ _ fun w ↦ adicCompletionComapTensorAlgHom A K L B v w.1 w.2
 
-def mapFactorsToPlaces: {g i | (i : s)}
-  → {adicCompletion L w | (w : HeightOneSpectrum B) (h : v = comap A w)} := sorry
+def mapFromFactorsToPlaces (i : s): {w : HeightOneSpectrum B | v = comap A w} := by
+  have := L; have := K; have := g; sorry
 
-def mapFactorsToPlaces_isSurj : Function.Surjective (mapFactorsToPlaces A K L B v g (s := s)) := sorry
+def mapFactorsToPlaces_isSurj : Function.Surjective (mapFromFactorsToPlaces A K L B v g (s := s)) :=
+  sorry
 
-def mapFactorsToPlaces_isInj : Function.Injective (mapFactorsToPlaces A K L B v g (s := s)) := sorry
+def mapFactorsToPlaces_isInj : Function.Injective (mapFromFactorsToPlaces A K L B v g (s := s)) :=
+  sorry
 
 noncomputable def adicCompletiontComapTensorAlgIso (v : HeightOneSpectrum A) :
   (L ⊗[K] (adicCompletion K v)) ≃ₐ[L] PiLw_above_v A L B v := by
