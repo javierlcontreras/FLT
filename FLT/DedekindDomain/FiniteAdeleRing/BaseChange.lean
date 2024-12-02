@@ -266,6 +266,8 @@ lemma complete_subalgebra_between_base_and_completion [unif : UniformSpace K]
   (h : unif = v.adicValued.toUniformSpace) (M : Subalgebra K (adicCompletion K v)) [CompleteSpace M]
   (embedding : Topology.IsEmbedding (algebraMap K M)): M = ⊤ := sorry
 
+#synth CompleteSpace (adicCompletion K (comap A w))
+
 set_option synthInstance.maxHeartbeats 0 in
 set_option maxHeartbeats 0 in
 lemma adicCompletionComapTensorAlgHom_surjective (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
