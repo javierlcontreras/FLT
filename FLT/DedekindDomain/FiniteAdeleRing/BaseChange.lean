@@ -244,32 +244,9 @@ noncomputable abbrev adicCompletionComapTensorAlgHom:
   Algebra.TensorProduct.lift (Algebra.ofId _ _) (adicCompletionComapAlgHom v w hvw)
     fun _ _ ↦ .all _ _
 
--- These things depend on Yaël's PR
-noncomputable instance : Algebra (adicCompletion K (comap A w)) (adicCompletion L w) := sorry
+instance : Algebra (adicCompletion K (comap A w)) (adicCompletion L w) := sorry
 noncomputable instance : IsScalarTower K (adicCompletion K (comap A w)) (adicCompletion L w) := sorry
 noncomputable instance : IsScalarTower K L (adicCompletion L w) := sorry
-
-lemma adicCompletionComapTensorAlgHom_surjective (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
-  (hvw : v = comap A w) : Function.Surjective (adicCompletionComapTensorAlgHom A K L B v w hvw) := by
-  rw [← AlgHom.range_eq_top]
-  let M' := (adicCompletionComapTensorAlgHom A K L B v w hvw).range
-  let L' := (algebraMap L (adicCompletion L w)).range
-  let Kv' := (adicCompletionComapAlgHom (K := K) (L := L) v w hvw).range
-
-  letI : AddCommMonoid M' := sorry
-  letI : Module (adicCompletion K v) M' := sorry
-  letI : Module.Finite (adicCompletion K v) M' := by
-    let gens := (Basis.exists_basis K L).choose
-    let a_basis := (Basis.exists_basis K L).choose_spec
-    let basis := a_basis.some
-    let ι := FiniteDimensional.fintypeBasisIndex basis
-    let spanning_set := (fun b ↦ adicCompletionComapTensorAlgHom A K L B v w hvw (b⊗ₜ1))
-      '' gens
-    refine ⟨⟨?_,?_⟩⟩
-  letI : IsAdicComplete w.asIdeal M' := sorry
-    -- Finite extension of complete is complete => M is complete. We have this in Mathlib! (Yaël)
-  -- Complete intermediate field between a field and its completion => its top
-  sorry
 
 set_option synthInstance.maxHeartbeats 0 in
 lemma adicCompletionDegree_le_degree (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
@@ -280,6 +257,33 @@ lemma adicCompletionDegree_le_degree (v : HeightOneSpectrum A) (w : HeightOneSpe
   let spanning_set := (fun b ↦ adicCompletionComapTensorAlgHom A K L B v w hvw (b ⊗ₜ 1)) '' basis
   have : Submodule.span (adicCompletion K (comap A w)) spanning_set = ⊤ := sorry
   sorry
+
+instance : Module.Finite (adicCompletion K (comap A w)) (adicCompletion L w) := sorry
+
+instance : NontriviallyNormedField (adicCompletion K v)  := sorry
+
+lemma complete_subalgebra_between_base_and_completion [unif : UniformSpace K]
+  (h : unif = v.adicValued.toUniformSpace) (M : Subalgebra K (adicCompletion K v)) [CompleteSpace M]
+  (embedding : Topology.IsEmbedding (algebraMap K M)): M = ⊤ := sorry
+
+set_option synthInstance.maxHeartbeats 0 in
+set_option maxHeartbeats 0 in
+lemma adicCompletionComapTensorAlgHom_surjective (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
+  (hvw : v = comap A w) : Function.Surjective (adicCompletionComapTensorAlgHom A K L B v w hvw) := by
+  rw [← AlgHom.range_eq_top]
+  let M' := (adicCompletionComapTensorAlgHom A K L B v w hvw).range
+  let M'' : Subalgebra (adicCompletion K (comap A w)) (adicCompletion L w) := {
+    carrier := M'
+    mul_mem' := sorry
+    add_mem' := sorry
+    algebraMap_mem' := sorry
+  }
+  letI : UniformAddGroup M'' := sorry
+  letI : ContinuousSMul (adicCompletion K (comap A w)) M'' := sorry
+  letI : CompleteSpace M'' := FiniteDimensional.complete (adicCompletion K (comap A w)) M''
+  letI : UniformSpace L := w.adicValued.toUniformSpace
+  let embedding : Topology.IsEmbedding (algebraMap L M') := sorry
+  exact complete_subalgebra_between_base_and_completion B L w (by rfl) M' embedding
 
 -- Theorem 5.12 in https://math.berkeley.edu/~ltomczak/notes/Mich2022/LF_Notes.pdf
 variable (f : Polynomial K)
