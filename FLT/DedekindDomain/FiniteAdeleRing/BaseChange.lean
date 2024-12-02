@@ -270,6 +270,7 @@ lemma complete_subalgebra_between_base_and_completion [unif : UniformSpace K]
 
 set_option synthInstance.maxHeartbeats 0 in
 set_option maxHeartbeats 0 in
+set_option diagnostics true in
 lemma adicCompletionComapTensorAlgHom_surjective (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
   (hvw : v = comap A w) : Function.Surjective (adicCompletionComapTensorAlgHom A K L B v w hvw) := by
   rw [← AlgHom.range_eq_top]
@@ -280,6 +281,8 @@ lemma adicCompletionComapTensorAlgHom_surjective (v : HeightOneSpectrum A) (w : 
     add_mem' := sorry
     algebraMap_mem' := sorry
   }
+
+#exit
   letI : UniformAddGroup M'' := sorry
   letI : ContinuousSMul (adicCompletion K (comap A w)) M'' := sorry
   letI : CompleteSpace M'' := FiniteDimensional.complete (adicCompletion K (comap A w)) M''
