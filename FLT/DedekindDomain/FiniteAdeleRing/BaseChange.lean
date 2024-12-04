@@ -1,13 +1,14 @@
-import Mathlib
 import FLT.Mathlib.Algebra.Order.Hom.Monoid
 import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Algebra.Order.GroupWithZero.WithZero
 import Mathlib.Analysis.Normed.Field.Lemmas
 import Mathlib.FieldTheory.Separable
 import Mathlib.NumberTheory.RamificationInertia.Basic
+import Mathlib.RingTheory.Henselian
+import Mathlib.RingTheory.DedekindDomain.IntegralClosure
+import Mathlib.RingTheory.DedekindDomain.FiniteAdeleRing
 import Mathlib.RingTheory.DedekindDomain.AdicValuation
 import Mathlib.RingTheory.DedekindDomain.Dvr
-import Mathlib.RingTheory.Henselian
 
 /-!
 
@@ -244,7 +245,7 @@ noncomputable abbrev adicCompletionComapTensorAlgHom:
   Algebra.TensorProduct.lift (Algebra.ofId _ _) (adicCompletionComapAlgHom v w hvw)
     fun _ _ ↦ .all _ _
 
-instance : Algebra (adicCompletion K (comap A w)) (adicCompletion L w) := sorry
+instance : Algebra (adicCompletion K (comap A w)) (adicCompletion L w) := by infer_instances
 noncomputable instance : IsScalarTower K (adicCompletion K (comap A w)) (adicCompletion L w) := sorry
 noncomputable instance : IsScalarTower K L (adicCompletion L w) := sorry
 
@@ -281,14 +282,12 @@ lemma adicCompletionComapTensorAlgHom_surjective (v : HeightOneSpectrum A) (w : 
     add_mem' := sorry
     algebraMap_mem' := sorry
   }
-
-#exit
   letI : UniformAddGroup M'' := sorry
   letI : ContinuousSMul (adicCompletion K (comap A w)) M'' := sorry
-  letI : CompleteSpace M'' := FiniteDimensional.complete (adicCompletion K (comap A w)) M''
-  letI : UniformSpace L := w.adicValued.toUniformSpace
-  let embedding : Topology.IsEmbedding (algebraMap L M') := sorry
-  exact complete_subalgebra_between_base_and_completion B L w (by rfl) M' embedding
+  --letI : CompleteSpace M'' := FiniteDimensional.complete (adicCompletion K (comap A w)) M''
+  --letI : UniformSpace L := w.adicValued.toUniformSpace
+  --let embedding : Topology.IsEmbedding (algebraMap L M') := sorry
+  --exact complete_subalgebra_between_base_and_completion B L w (by rfl) M' embedding
 
 -- Theorem 5.12 in https://math.berkeley.edu/~ltomczak/notes/Mich2022/LF_Notes.pdf
 variable (f : Polynomial K)
@@ -316,10 +315,10 @@ noncomputable def tensor_adic_equiv_prod_factors (hff : f' = f.map (algebraMap _
 
 abbrev PiLw_above_v (v : HeightOneSpectrum A) :=
   Π w : {w : HeightOneSpectrum B // v = comap A w}, adicCompletion L w.1
-
 noncomputable def adicCompletionComapTensorAlgHomToPi (v : HeightOneSpectrum A) :
     L ⊗[K] adicCompletion K v →ₐ[L] PiLw_above_v A L B v :=
       Pi.algHom _ _ fun w ↦ adicCompletionComapTensorAlgHom A K L B v w.1 w.2
+
 
 def mapFromFactorsToPlaces (i : s): {w : HeightOneSpectrum B | v = comap A w} := by
   have := L; have := K; have := g; sorry
@@ -338,6 +337,7 @@ noncomputable def adicCompletiontComapTensorAlgIso (v : HeightOneSpectrum A) :
   let fKv := Polynomial.map (algebraMap _ Kv) fK
   let factors := UniqueFactorizationMonoid.factors fKv
   sorry
+
 
 theorem adicCompletionComapAlgIso_integral : ∃ S : Finset (HeightOneSpectrum A), ∀ v ∉ S,
   -- image of B ⊗[A] (integer ring at v) = (product of integer rings at w's) under above iso
@@ -415,4 +415,3 @@ noncomputable def FiniteAdeleRing.baseChangeIso : L ⊗[K] FiniteAdeleRing A K �
 end DedekindDomain
 
 #min_imports
-#exit
