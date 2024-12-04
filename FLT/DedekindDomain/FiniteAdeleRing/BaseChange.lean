@@ -1,10 +1,17 @@
-import Mathlib -- **TODO** fix when finished or if `exact?` is too slow
---import Mathlib.RingTheory.DedekindDomain.FiniteAdeleRing
---import Mathlib.NumberTheory.NumberField.Basic
---import Mathlib.NumberTheory.RamificationInertia
-import FLT.Mathlib.Algebra.Order.Monoid.Unbundled.TypeTags
-import FLT.Mathlib.Algebra.Order.Hom.Monoid
 import FLT.Mathlib.Algebra.Algebra.Subalgebra.Pi
+import FLT.Mathlib.Algebra.Order.Hom.Monoid
+import Mathlib.Algebra.Lie.OfAssociative
+import Mathlib.Algebra.Order.Group.Int
+import Mathlib.FieldTheory.Separable
+import Mathlib.NumberTheory.RamificationInertia.Basic
+import Mathlib.Order.CompletePartialOrder
+import Mathlib.RingTheory.DedekindDomain.Dvr
+import Mathlib.RingTheory.DedekindDomain.FiniteAdeleRing
+import Mathlib.RingTheory.Henselian
+import Mathlib.Topology.Algebra.Module.ModuleTopology
+import Mathlib.Topology.CompletelyRegular
+import Mathlib.RingTheory.DedekindDomain.IntegralClosure
+
 
 /-!
 
@@ -281,7 +288,8 @@ lemma adicCompletionComapAlgIso_tmul_apply (v : HeightOneSpectrum A) (x y i) :
   rw [Algebra.smul_def]
   rfl
 
-attribute [local instance 9999] SMulCommClass.of_commMonoid TensorProduct.isScalarTower_left IsScalarTower.right
+attribute [local instance 9999] SMulCommClass.of_commMonoid TensorProduct.isScalarTower_left
+  IsScalarTower.right
 
 instance (R K : Type*) [CommRing R] [IsDedekindDomain R] [Field K]
     [Algebra R K] [IsFractionRing R K] (v : HeightOneSpectrum R) :
