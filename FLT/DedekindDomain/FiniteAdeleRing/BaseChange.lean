@@ -195,6 +195,13 @@ noncomputable def adicCompletionComapRingHom
     rw [mul_comm]
     exact Int.mul_le_of_le_ediv (by positivity) le_rfl
 
+/-- Say `w` is a finite place of `B` lying above `v` a finite place of `A`. Then there's a ring hom
+`A_v → B_w`. -/
+noncomputable def adicCompletionComapRingHomIntegers
+    (v : HeightOneSpectrum A) (w : HeightOneSpectrum B) (hvw : v = comap A w) :
+    adicCompletionIntegers K v →+* adicCompletionIntegers L w :=
+  sorry
+
 -- The below works!
 --variable (w : HeightOneSpectrum B) in
 --#synth SMul K (adicCompletion L w)
@@ -238,6 +245,14 @@ noncomputable def adicCompletionComapAlgHom
     letI : UniformSpace L := w.adicValued.toUniformSpace;
     UniformSpace.Completion.continuous_extension
 
+set_option maxHeartbeats 2000000 in
+noncomputable def adicCompletionComapAlgHomIntegers
+  (v : HeightOneSpectrum A) (w : HeightOneSpectrum B) (hvw : v = comap A w) :
+    (adicCompletionIntegers K v) →A[A] (adicCompletionIntegers L w) where
+  __ := adicCompletionComapRingHomIntegers A K v w hvw
+  commutes' r := sorry
+  cont := sorry
+
 omit [IsIntegralClosure B A L] [FiniteDimensional K L] [Algebra.IsSeparable K L] in
 lemma adicCompletionComapAlgHom_coe
     (v : HeightOneSpectrum A) (w : HeightOneSpectrum B) (hvw : v = comap A w) (x : K) :
@@ -280,6 +295,12 @@ noncomputable def adicCompletionTensorComapAlgHom (v : HeightOneSpectrum A) (w :
     (hvw : v = comap A w) :
     L ⊗[K] adicCompletion K v →ₐ[L] adicCompletion L w :=
   Algebra.TensorProduct.lift (Algebra.ofId _ _) (adicCompletionComapAlgHom A K L B v w hvw) fun _ _ ↦ .all _ _
+
+noncomputable def adicCompletionTensorComapAlgHomIntegers (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
+    (hvw : v = comap A w) :
+    B ⊗[A] adicCompletion A v →ₐ[B] adicCompletion B w :=
+  Algebra.TensorProduct.lift (Algebra.ofId _ _) (adicCompletionComapAlgHomIntegers A K L B v w hvw) fun _ _ ↦ .all _ _
+
 
 noncomputable def adicCompletionTensorComapAlgHom' (v : HeightOneSpectrum A) :
     L ⊗[K] adicCompletion K v →ₐ[L]
@@ -380,41 +401,22 @@ variable (v : HeightOneSpectrum A) (w : HeightOneSpectrum B) (hvw : v = comap A 
 noncomputable instance : Algebra (adicCompletion K (comap A w)) (adicCompletion L w) :=
   (adicCompletionComapAlgHom A K L B (comap A w) w rfl).toAlgebra
 
+lemma adicCompletionTensorComapAlgHomIntegers_surjective (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
+    (hvw : v = comap A w) : Function.Surjective (adicCompletionTensorComapAlgHomIntegers A K L B v w hvw) :=
+  sorry
 
-#synth CompletableTopField (adicCompletion K v)
-
-instance : NormedField (adicCompletion K v) :=
-  letI := v.adicValued.toUniformSpace
-  UniformSpace.Completion.instNormedFieldOfCompletableTopField K
-
-instance : NontriviallyNormedField (adicCompletion K v) :=
 
 set_option synthInstance.maxHeartbeats 0 in
 set_option maxHeartbeats 0 in
 set_option diagnostics true in
 lemma adicCompletionTensorComapAlgHom_surjective (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
-  (hvw : v = comap A w) : Function.Surjective (adicCompletionTensorComapAlgHom A K L B v w hvw) := by
-  rw [← AlgHom.range_eq_top]
-  let M' := (adicCompletionTensorComapAlgHom A K L B v w hvw).range
-  let M'' : Subalgebra (adicCompletion K (comap A w)) (adicCompletion L w) := {
-    carrier := M'
-    mul_mem' := sorry
-    add_mem' := sorry
-    algebraMap_mem' := sorry
-  }
-  letI : UniformAddGroup M'' := sorry
-  letI : ContinuousSMul (adicCompletion K (comap A w)) M'' := sorry
+    (hvw : v = comap A w) : Function.Surjective (adicCompletionTensorComapAlgHom A K L B v w hvw) := by
   sorry
-  --letI : CompleteSpace M'' := FiniteDimensional.complete (adicCompletion K (comap A w)) M''
-  --letI : UniformSpace L := w.adicValued.toUniformSpace
-  --let embedding : Topology.IsEmbedding (algebraMap L M') := sorry
-  --exact complete_subalgebra_between_base_and_completion B L w (by rfl) M' embedding
-
 
 set_option synthInstance.maxHeartbeats 0 in
 lemma adicCompletionDegree_le_degree (v : HeightOneSpectrum A) (w : HeightOneSpectrum B)
-  (hvw : v = comap A w):
-  Module.rank  (adicCompletion K (comap A w)) (adicCompletion L w) ≤ Module.rank K L := by
+    (hvw : v = comap A w):
+    Module.rank  (adicCompletion K (comap A w)) (adicCompletion L w) ≤ Module.rank K L := by
   let basis := (Basis.exists_basis K L).choose
   have is_basis := (Basis.exists_basis K L).choose_spec
   let spanning_set := (fun b ↦ adicCompletionTensorComapAlgHom A K L B v w hvw (b ⊗ₜ 1)) '' basis
