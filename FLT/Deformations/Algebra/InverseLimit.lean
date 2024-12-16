@@ -16,7 +16,6 @@ See Atiyah-Macdonald PP.32-33, Matsumura PP.269-270
 * `Module.InverseLimit G f`
 * `AddCommGroup.InverseLimit G f`
 * `Ring.InverseLimit G f`
-
 -/
 
 suppress_compilation
